@@ -131,6 +131,7 @@ mod ominous_item_spawner;
 mod options;
 mod packs;
 mod pad;
+mod touch;
 mod pad_menu;
 mod paintings;
 mod pandas;
@@ -346,7 +347,12 @@ impl Options {
             .ok_or("missing executable directory")?
             .join("resources");
         let mut o = Self {
-            resources: if sibling.join("horizon-resources.json").exists() {
+            resources: if let Some(path) =
+                std::env::var_os("HORIZON_RESOURCES").filter(|p| !p.is_empty())
+            {
+                // Android: set by android_main to the app's storage (ANDROID.md).
+                path.into()
+            } else if sibling.join("horizon-resources.json").exists() {
                 sibling
             } else {
                 std::path::Path::new(".local/horizon-client").join(horizon_core::VANILLA_VERSION)
@@ -1499,6 +1505,8 @@ struct Game<'a> {
     last_input: Instant,
     /// Controllers (Horizon's own).
     pad: pad::Pads,
+    /// Fingers on a touch screen (Android).
+    touch: touch::Touches,
     frames: u64,
     /// `item_level` for one frame, game time, day time and dimension.
     item_level_cache: std::cell::RefCell<
@@ -5661,6 +5669,11 @@ impl Game<'_> {
                 .set_cursor_grab(CursorGrabMode::Locked)
                 .or_else(|_| window.set_cursor_grab(CursorGrabMode::Confined))
                 .is_ok();
+            // Android has no pointer to grab: touch turns the view (game/touch.rs).
+            #[cfg(target_os = "android")]
+            {
+                self.captured = true;
+            }
             #[cfg(not(target_os = "macos"))]
             if self.captured && self.focused {
                 warp(window);
@@ -12468,6 +12481,12 @@ impl Game<'_> {
 impl ApplicationHandler for Game<'_> {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
         if self.window.is_some() {
+            // Android: the native window is back after the app was in the background.
+            if let Some(renderer) = &mut self.renderer
+                && let Err(e) = renderer.regain_surface()
+            {
+                log::warn!("Horizon: surface not recreated: {e}");
+            }
             return;
         }
         // The Window constructor: created fullscreen when options.txt says so.
@@ -12510,8 +12529,18 @@ impl ApplicationHandler for Game<'_> {
         self.apply_settings();
         self.previous = Instant::now();
     }
+    fn suspended(&mut self, _: &ActiveEventLoop) {
+        // Android: the native window goes away in the background.
+        if let Some(renderer) = &mut self.renderer {
+            renderer.lose_surface();
+        }
+    }
     fn window_event(&mut self, event_loop: &ActiveEventLoop, id: WindowId, event: WindowEvent) {
         if self.window.as_ref().is_none_or(|w| w.id() != id) {
+            return;
+        }
+        if let WindowEvent::Touch(touch) = &event {
+            self.touch_event(event_loop, *touch);
             return;
         }
         if let WindowEvent::KeyboardInput { event, .. } = &event
@@ -13656,6 +13685,7 @@ impl<'a> Game<'a> {
             previous: now,
             last_input: now,
             pad: Default::default(),
+            touch: Default::default(),
             frames: 0,
             item_level_cache: Default::default(),
             world_frames: 0,
@@ -14856,8 +14886,25 @@ fn write_report(game: &Game<'_>) -> Result<()> {
     Ok(())
 }
 
+/// The event loop; on Android it needs the activity `android_main` was given.
+fn new_event_loop() -> std::result::Result<EventLoop<()>, winit::error::EventLoopError> {
+    #[cfg(target_os = "android")]
+    {
+        use winit::platform::android::EventLoopBuilderExtAndroid;
+        let app = ANDROID_APP.get().expect("android_main sets the activity").clone();
+        EventLoop::builder().with_android_app(app).build()
+    }
+    #[cfg(not(target_os = "android"))]
+    EventLoop::new()
+}
+
+/// The activity the Android entry point (`android_main.rs`) was started with.
+#[cfg(target_os = "android")]
+pub static ANDROID_APP: std::sync::OnceLock<winit::platform::android::activity::AndroidApp> =
+    std::sync::OnceLock::new();
+
 fn run_event_loop(mut game: Game<'_>) -> Result<()> {
-    EventLoop::new()?.run_app(&mut game)?;
+    new_event_loop()?.run_app(&mut game)?;
     horizon_client::discord_presence::stop();
     write_report(&game)?;
     if let Some(e) = game.error.take() {
@@ -14889,6 +14936,12 @@ struct Loading {
 impl Loading {
     fn resumed(&mut self, event_loop: &ActiveEventLoop) {
         if self.window.is_some() {
+            // Android: the native window is back after the app was in the background.
+            if let Some(renderer) = &mut self.renderer
+                && let Err(e) = renderer.regain_surface()
+            {
+                log::warn!("Horizon: surface not recreated: {e}");
+            }
             return;
         }
         // The Window constructor: created fullscreen when options.txt says so.
@@ -14937,6 +14990,12 @@ impl Loading {
         }
         horizon_client::hud::GUI_SCALE.store(self.settings.gui_scale, Ordering::Relaxed);
         self.window = Some(window);
+    }
+    fn suspended(&mut self, _: &ActiveEventLoop) {
+        // Android: the native window goes away in the background.
+        if let Some(renderer) = &mut self.renderer {
+            renderer.lose_surface();
+        }
     }
     fn window_event(&mut self, event_loop: &ActiveEventLoop, id: WindowId, event: WindowEvent) {
         if self.window.as_ref().is_none_or(|w| w.id() != id) {
@@ -15118,6 +15177,12 @@ impl ApplicationHandler for App {
             App::Ready(game) => game.resumed(event_loop),
         }
     }
+    fn suspended(&mut self, event_loop: &ActiveEventLoop) {
+        match self {
+            App::Loading(loading) => loading.suspended(event_loop),
+            App::Ready(game) => game.suspended(event_loop),
+        }
+    }
     fn window_event(&mut self, event_loop: &ActiveEventLoop, id: WindowId, event: WindowEvent) {
         match self {
             App::Loading(loading) => loading.window_event(event_loop, id, event),
@@ -15214,7 +15279,7 @@ fn run_loading(
         error: None,
     };
     let mut app = App::Loading(Box::new(loading));
-    EventLoop::new()?.run_app(&mut app)?;
+    new_event_loop()?.run_app(&mut app)?;
     horizon_client::discord_presence::stop();
     match app {
         App::Ready(mut game) => {

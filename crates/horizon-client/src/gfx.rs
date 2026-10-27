@@ -2719,6 +2719,25 @@ impl Renderer {
             .get_mut()
             .unwrap_or_else(std::sync::PoisonError::into_inner) = self.surface.take();
     }
+    /// Android: the native window is destroyed while the app is in the
+    /// background; the surface made from it goes with it.
+    pub fn lose_surface(&mut self) {
+        self.surface = None;
+        *self
+            .spare_surface
+            .get_mut()
+            .unwrap_or_else(std::sync::PoisonError::into_inner) = None;
+        self.suspended = true;
+    }
+    /// Android: a new native window after `lose_surface`.
+    pub fn regain_surface(&mut self) -> Result<()> {
+        if self.surface.is_some() {
+            return Ok(());
+        }
+        self.recreate_surface()?;
+        self.suspended = self.config.width == 0 || self.config.height == 0;
+        Ok(())
+    }
     /// Reattach a window after surface loss or a failed renderer replacement.
     pub fn recreate_surface(&mut self) -> Result<()> {
         if self.offscreen.is_some() {

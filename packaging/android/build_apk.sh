@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# Builds target/android/horizon.apk (arm64-v8a, debug-signed). See ANDROID.md.
+set -euo pipefail
+cd "$(dirname "$0")/../.."
+: "${ANDROID_HOME:?set ANDROID_HOME to the Android SDK}"
+NDK="${ANDROID_NDK_HOME:-$(ls -d "$ANDROID_HOME"/ndk/* | sort -V | tail -n1)}"
+export ANDROID_NDK_HOME="$NDK"
+BT="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -n1)"
+PLATFORM="$ANDROID_HOME/platforms/android-34/android.jar"
+PROFILE="${PROFILE:-fast}"
+OUT=target/android
+rm -rf "$OUT/stage" && mkdir -p "$OUT/stage/lib"
+cargo ndk -t arm64-v8a -P 26 -o "$OUT/jni" build -p horizon-android --profile "$PROFILE" ${CARGO_FLAGS:-}
+mkdir -p "$OUT/stage/lib/arm64-v8a"
+"$NDK"/toolchains/llvm/prebuilt/*/bin/llvm-strip -o "$OUT/stage/lib/arm64-v8a/libhorizon.so" "$OUT/jni/arm64-v8a/libhorizon.so"
+"$BT/aapt2" link -o "$OUT/unaligned.apk" --manifest packaging/android/AndroidManifest.xml -I "$PLATFORM"
+python3 - "$OUT" <<'PY'
+import sys, zipfile
+out = sys.argv[1]
+with zipfile.ZipFile(f"{out}/unaligned.apk", "a", zipfile.ZIP_DEFLATED) as z:
+    z.write(f"{out}/stage/lib/arm64-v8a/libhorizon.so", "lib/arm64-v8a/libhorizon.so")
+PY
+"$BT/zipalign" -f -p 4 "$OUT/unaligned.apk" "$OUT/aligned.apk"
+KS="${KEYSTORE:-$HOME/.android/debug.keystore}"
+if [ ! -f "$KS" ]; then
+  mkdir -p "$(dirname "$KS")"
+  keytool -genkeypair -keystore "$KS" -storepass android -keypass android -alias androiddebugkey \
+    -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+fi
+"$BT/apksigner" sign --ks "$KS" --ks-pass pass:android --key-pass pass:android --out "$OUT/horizon.apk" "$OUT/aligned.apk"
+rm -f "$OUT/unaligned.apk" "$OUT/aligned.apk"
+ls -l "$OUT/horizon.apk"

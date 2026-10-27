@@ -80,6 +80,10 @@ wgpu = { version = "30.0.1", default-features = false, features = ["dx12"] }
 # DirectX 12 driver (`graphicsApi`, graphics.rs).
 wgpu = { version = "30.0.1", default-features = false, features = ["gles"] }
 
+[target.'cfg(target_os = "android")'.dependencies]
+# Android: the NativeActivity glue (no Java), see ANDROID.md.
+winit = { version = "0.30.13", features = ["android-native-activity"] }
+
 [target.'cfg(windows)'.build-dependencies]
 # The icon resource in the .exe (build.rs).
 winresource = "0.1"
