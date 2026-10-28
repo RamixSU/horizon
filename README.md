@@ -1,21 +1,24 @@
 # Horizon для Android / Horizon for Android (unofficial)
 
-> 🇷🇺 Русский ниже · 🇬🇧 English further down
+Русский ниже, English further down.
+
+**Сырой проект, требует много допила.** Работает, но многое ещё не доделано и не отполировано.
+**Raw, early project that still needs a lot of polishing.** It runs, but plenty is unfinished.
 
 ---
 
-## 🇷🇺 Русский
+## Русский
 
 ### Что это
 
-Это **неофициальный порт [Horizon](https://github.com/horizon-rust/horizon) на Android**. Проект — форк
-репозитория https://github.com/horizon-rust/horizon, и вся основная работа — заслуга оригинальных авторов Horizon.
-Огромное им спасибо! Я только добавил то, что нужно для запуска на телефоне: сборку APK, сенсорное управление,
+Это неофициальный порт [Horizon](https://github.com/horizon-rust/horizon) на Android. Проект — форк
+репозитория https://github.com/horizon-rust/horizon, и вся основная работа - заслуга оригинальных авторов Horizon.
+Спасибо им. Я только добавил то, что нужно для запуска на телефоне: сборку APK, сенсорное управление,
 экранную клавиатуру и пару мелочей.
 
 Оригинальный README лежит в [README.upstream.md](README.upstream.md).
 
-### ⚠️ Важно
+### Важно
 
 - Я **никак не связан** с разработчиками Horizon, с Mojang или Microsoft. Это любительский проект.
 - В репозитории и в APK **нет никаких файлов Minecraft**. Нужна своя **легальная копия Minecraft Java Edition**,
@@ -50,7 +53,7 @@ adb shell mkdir -p /sdcard/Android/data/dev.horizonlab.horizon/files/resources
 adb push .local/horizon-client/26.3/. /sdcard/Android/data/dev.horizonlab.horizon/files/resources/
 ```
 
-Подробности — в [ANDROID.md](ANDROID.md).
+Подробности в [ANDROID.md](ANDROID.md).
 
 ### Управление
 
@@ -68,12 +71,12 @@ Samsung Galaxy S25 (Adreno 830, Vulkan). Доходит до меню и оди�
 
 ### Известные проблемы
 
-- Ест около **2,2 ГБ ОЗУ** — на слабых телефонах может вылетать. Попробуй дальность прорисовки 4–6.
+- Ест около **2,2 ГБ ОЗУ**, на слабых телефонах может вылетать. Попробуй дальность прорисовки 4-6.
 - Это **ранняя, экспериментальная** версия: баги будут. Логи — в `files/logs/latest.log`.
 
 ### Сборка
 
-Инструкции по сборке APK — в [ANDROID.md](ANDROID.md).
+Инструкции по сборке APK в [ANDROID.md](ANDROID.md).
 
 ### Лицензия
 
@@ -81,18 +84,18 @@ MIT, как и оригинал. Файл [LICENSE](LICENSE) и копирайт
 
 ---
 
-## 🇬🇧 English
+## English
 
 ### What is this
 
-This is an **unofficial Android port of [Horizon](https://github.com/horizon-rust/horizon)**. It's a fork of
-https://github.com/horizon-rust/horizon, and almost all the real work belongs to the original Horizon authors —
-huge thanks to them! I just added what's needed to run it on a phone: APK packaging, touch controls, an on-screen
+This is an unofficial Android port of [Horizon](https://github.com/horizon-rust/horizon). It's a fork of
+https://github.com/horizon-rust/horizon, and almost all the real work belongs to the original Horizon authors,
+thanks to them. I just added what's needed to run it on a phone: APK packaging, touch controls, an on-screen
 keyboard and a few small things.
 
 The original README lives in [README.upstream.md](README.upstream.md).
 
-### ⚠️ Heads up
+### Heads up
 
 - I'm **not affiliated** with the Horizon developers, Mojang or Microsoft. This is a hobby project.
 - **No Minecraft files are included** in this repo or the APK. You need your own **legit copy of Minecraft Java
@@ -145,7 +148,7 @@ Samsung Galaxy S25 (Adreno 830, Vulkan). Gets to the menus and a single-player w
 
 ### Known issues
 
-- Uses around **2.2 GB of RAM** — weaker phones may crash. Try render distance 4–6.
+- Uses around **2.2 GB of RAM**, weaker phones may crash. Try render distance 4-6.
 - This is an **early, experimental** build, so expect bugs. Logs are in `files/logs/latest.log`.
 
 ### Building
@@ -158,6 +161,4 @@ MIT, same as the original. The [LICENSE](LICENSE) file and the original authors'
 
 ---
 
-— Порт собран с помощью Grok Bot 🤖 / Port built with the help of Grok Bot
-
-Автор порта / Port author: [Rayan-XOO](https://github.com/Rayan-XOO)
+Port:  [Rayan-XOO](https://github.com/Rayan-XOO)
