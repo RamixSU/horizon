@@ -109,3 +109,23 @@ folder is used instead (reachable only with `adb shell run-as` on a debug build)
 - Attack and use have their own buttons. A quick tap in the world attacks the entity
   under the crosshair, or uses if there isn't one. Holding still breaks blocks.
 - The window now draws under the display cutout (shortEdges).
+
+## First-run download (no PC)
+
+When `files/resources` has no finished preparation, the app opens a setup screen
+(`SetupActivity`, `crates/horizon-client/src/android_setup.rs`) instead of the game. One button
+downloads from Mojang, checking every SHA-1: the version JSON, the client JAR (must match
+`research-lock.json`'s `client_sha1`), the asset index and its sounds, fonts, languages, panorama
+and built-in packs (about 525 MB in total, 8 parallel connections). The JAR's assets, data, tag
+and worldgen bundles are then unpacked in Rust (`horizon_prepare::device`), the same bytes
+`horizon-prepare` writes. A foreground service keeps it running in the background, with a progress
+notification. An interrupted run resumes: verified files are skipped, partial files continue.
+
+What only the Java exporters can make (facts, collision, gameplay facts, entity models, the data
+generator's reports and so on, about 126 MB, 4 MB zipped) is the "derived pack":
+`packaging/android/make_derived_pack.sh` zips it from a PC-prepared folder. The phone takes it from
+the URL on the setup screen (or the build's `HORIZON_DERIVED_URL`), or from
+`files/horizon-derived.zip` if that file exists. It is derived from Mojang's game, so do not
+publish it.
+
+A folder already prepared on a PC and pushed to `files/resources` is used as before.
