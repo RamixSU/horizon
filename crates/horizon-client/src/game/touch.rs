@@ -2,7 +2,8 @@
 //!
 //! In menus a finger is the mouse (down = left click, moving drags). In the
 //! world the controls are drawn over the HUD (`draw_touch_controls`): a
-//! joystick, jump, sneak, attack, use, pause, chat, keyboard, inventory,
+//! joystick, jump, sneak, sprint (a toggle), attack and
+//! use (held; the same finger turns the view), pause, chat, keyboard, inventory,
 //! drop, F1/F2/F3/F5 and the layout editor (the gear). Hotbar slots select
 //! on tap. Anywhere else turns the view; a short tap there attacks the
 //! entity under the crosshair or else uses (right click), and a finger held
@@ -51,8 +52,10 @@ enum Finger {
     },
     /// Holding a controller button.
     Press(Button),
-    /// Holding a trigger (0 = use, 1 = attack).
-    Trigger(usize),
+    /// Holding a trigger (0 = use, 1 = attack) from its button; moving the
+    /// same finger turns the view like `Look`, and the trigger stays held
+    /// until it lifts, wherever it slides.
+    Trigger { i: usize, last: [f64; 2], since: Instant },
     /// Dragging a control in the editor, from this offset to its centre.
     Drag(Id, [f32; 2]),
     /// Took over a hotbar slot or the keyboard; nothing until it lifts.
@@ -66,6 +69,7 @@ pub(super) enum Id {
     Stick,
     Jump,
     Sneak,
+    Sprint,
     Attack,
     Use,
     Pause,
@@ -80,10 +84,11 @@ pub(super) enum Id {
     Edit,
 }
 
-const IDS: [Id; 15] = [
+const IDS: [Id; 16] = [
     Id::Stick,
     Id::Jump,
     Id::Sneak,
+    Id::Sprint,
     Id::Attack,
     Id::Use,
     Id::Pause,
@@ -125,6 +130,8 @@ impl Default for TouchLayout {
             (Id::Stick, at(44.0, h - 48.0, 32.0)),
             (Id::Jump, at(w - 30.0, h - 42.0, 18.0)),
             (Id::Sneak, at(w - 72.0, h - 22.0, 13.0)),
+            // Up and right of the joystick, clear of it and the hotbar.
+            (Id::Sprint, at(96.0, h - 86.0, 11.0)),
             (Id::Attack, at(w - 34.0, h - 96.0, 15.0)),
             (Id::Use, at(w - 72.0, h - 66.0, 14.0)),
             (Id::Pause, at(w - 12.0, 12.0, 9.0)),
@@ -202,6 +209,8 @@ pub(super) struct Touches {
     trigger_release: [u8; 2],
     /// Sneak toggled on (Bedrock's sneak button toggles).
     sneaking: bool,
+    /// Sprint toggled on; off again when the joystick is let go.
+    sprinting: bool,
     layout: TouchLayout,
     /// The layout editor is open; the selected control.
     editing: bool,
@@ -217,6 +226,7 @@ impl Default for Touches {
             knob: [0.0; 2],
             trigger_release: [0; 2],
             sneaking: false,
+            sprinting: false,
             layout: if cfg!(target_os = "android") { TouchLayout::load() } else { TouchLayout::default() },
             editing: false,
             selected: None,
@@ -346,6 +356,15 @@ fn icon(batch: &mut HudBatch, atlas: &HudAtlas, id: Id, c: [f32; 2], r: f32, col
         Id::Sneak => {
             batch.fill_quad(atlas, [[x - s, y - s * 0.7], [x + s, y - s * 0.7], [x, y + s * 0.5], [x, y + s * 0.5]], color);
             batch.fill(atlas, x - s, y + s * 0.65, s * 2.0, (s * 0.25).max(1.0), color);
+        }
+        Id::Sprint => {
+            // Two chevrons pointing forward (up): speed.
+            let t = (s * 0.3).max(1.2);
+            for dy in [-0.45, 0.35] {
+                let yy = y + s * dy;
+                line(batch, atlas, [x - s * 0.7, yy + s * 0.45], [x, yy - s * 0.25], t, color);
+                line(batch, atlas, [x, yy - s * 0.25], [x + s * 0.7, yy + s * 0.45], t, color);
+            }
         }
         Id::Attack => {
             // A sword, point up and to the right.
@@ -499,6 +518,7 @@ impl Game<'_> {
             } else {
                 let down = match id {
                     Id::Sneak => t.sneaking,
+                    Id::Sprint => t.sprinting,
                     Id::Jump => self.pad.injected.held(Button::South),
                     Id::Attack => self.pad.injected.triggers[1] > 0.5,
                     Id::Use => self.pad.injected.triggers[0] > 0.5,
@@ -567,11 +587,17 @@ impl Game<'_> {
             }
             match finger {
                 Finger::Look { attacking: true, .. } => attack = true,
-                Finger::Trigger(i) => held[*i] = true,
+                Finger::Trigger { i, .. } => held[*i] = true,
                 _ => {}
             }
         }
         held[1] |= attack;
+        // Like vanilla, sprint ends when the player stops moving: here when
+        // the joystick is let go.
+        if self.touch.sprinting && !self.touch.fingers.values().any(|f| matches!(f, Finger::Stick)) {
+            self.touch.sprinting = false;
+            self.pad.injected.set(Button::LeftStick, false);
+        }
         for i in 0..2 {
             if self.touch.trigger_release[i] == 0 {
                 self.pad.injected.triggers[i] = if held[i] { 1.0 } else { 0.0 };
@@ -644,8 +670,12 @@ impl Game<'_> {
                 self.pad.injected.set(Button::RightStick, self.touch.sneaking);
                 Finger::Done
             }
-            Id::Attack => Finger::Trigger(1),
-            Id::Use => Finger::Trigger(0),
+            Id::Sprint => {
+                self.touch.sprinting = !self.touch.sprinting;
+                self.pad.injected.set(Button::LeftStick, self.touch.sprinting);
+                Finger::Done
+            }
+            Id::Attack | Id::Use => unreachable!("touch_event starts trigger fingers"),
             Id::Pause => pad(self, Button::Start),
             Id::Chat => pad(self, Button::DPadRight),
             Id::Inventory => pad(self, Button::North),
@@ -730,6 +760,11 @@ impl Game<'_> {
                         self.touch.selected = None;
                         Finger::Done
                     }
+                } else if let Some(control) = gui.hit(&self.touch.layout, p, false)
+                    && matches!(control, Id::Attack | Id::Use)
+                {
+                    let i = if control == Id::Attack { 1 } else { 0 };
+                    Finger::Trigger { i, last: pos, since: Instant::now() }
                 } else if let Some(control) = gui.hit(&self.touch.layout, p, false) {
                     let finger = self.touch_press(control);
                     if matches!(finger, Finger::Stick) {
@@ -762,6 +797,13 @@ impl Game<'_> {
                     self.mouse.on_move(0.0, 0.0, dx, dy, true, true);
                     self.last_input = Instant::now();
                 }
+                Some(Finger::Trigger { i, last, since }) => {
+                    // The attack (or use) button's finger turns the view too.
+                    let (dx, dy) = (pos[0] - last[0], pos[1] - last[1]);
+                    self.touch.fingers.insert(id, Finger::Trigger { i, last: pos, since });
+                    self.mouse.on_move(0.0, 0.0, dx, dy, true, true);
+                    self.last_input = Instant::now();
+                }
                 _ => {}
             },
             TouchPhase::Ended | TouchPhase::Cancelled => match self.touch.fingers.remove(&id) {
@@ -774,6 +816,12 @@ impl Game<'_> {
                     self.pad.injected.left = [0.0, 0.0];
                 }
                 Some(Finger::Press(button)) => self.pad.injected.set(button, false),
+                Some(Finger::Trigger { i, since, .. }) if since.elapsed().as_millis() < HOLD_MS => {
+                    // A short tap: keep it down a few frames so a tick sees
+                    // one hit (or one use).
+                    self.pad.injected.triggers[i] = 1.0;
+                    self.touch.trigger_release[i] = 3;
+                }
                 Some(Finger::Look { moved: false, attacking: false, .. }) if touch.phase == TouchPhase::Ended => {
                     // A tap: attack the entity under the crosshair (Bedrock),
                     // else use; held for a few frames so a tick sees it.
