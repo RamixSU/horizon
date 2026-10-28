@@ -248,6 +248,14 @@ impl Gui {
     fn close(&self) -> ([f32; 2], f32) {
         ([self.w - 12.0, 12.0], 9.0)
     }
+    /// The profile button (name, skin) on the title and pause screens, top left.
+    fn profile(&self) -> ([f32; 2], f32) {
+        ([12.0, 12.0], 9.0)
+    }
+    fn profile_hit(&self, p: [f32; 2]) -> bool {
+        let (c, r) = self.profile();
+        (p[0] - c[0]).hypot(p[1] - c[1]) <= r + 5.0
+    }
     fn close_hit(&self, p: [f32; 2]) -> bool {
         let (c, r) = self.close();
         (p[0] - c[0]).hypot(p[1] - c[1]) <= r + 5.0
@@ -413,6 +421,13 @@ impl Game<'_> {
             && !self.touch_text_focused()
     }
 
+    /// On the title or pause screen: the profile button.
+    fn touch_profile_shown(&self) -> bool {
+        cfg!(target_os = "android")
+            && !self.touch_text_focused()
+            && (self.title.as_ref().is_some_and(|t| matches!(t.mode, horizon_client::title::Mode::Main)) || (self.player.is_some() && self.screen == super::Screen::Paused))
+    }
+
     /// A text box has focus (the soft keyboard is wanted).
     fn touch_text_focused(&self) -> bool {
         use super::Screen;
@@ -446,6 +461,14 @@ impl Game<'_> {
             ring(batch, atlas, c, r, 1.0, rgba(255, 255, 255, 160));
             line(batch, atlas, [c[0] - 3.5, c[1] - 3.5], [c[0] + 3.5, c[1] + 3.5], 1.5, 0xFFFF_FFFF);
             line(batch, atlas, [c[0] - 3.5, c[1] + 3.5], [c[0] + 3.5, c[1] - 3.5], 1.5, 0xFFFF_FFFF);
+        }
+        if self.touch_profile_shown() {
+            let (c, r) = gui.profile();
+            disc(batch, atlas, c, r, rgba(0, 0, 0, 150));
+            ring(batch, atlas, c, r, 1.0, rgba(255, 255, 255, 160));
+            // A head and shoulders.
+            batch.fill(atlas, c[0] - 2.5, c[1] - 5.0, 5.0, 5.0, 0xFFFF_FFFF);
+            batch.fill(atlas, c[0] - 4.5, c[1] + 1.0, 9.0, 4.0, 0xFFFF_FFFF);
         }
         if !self.touch_controls_shown() {
             return;
@@ -684,7 +707,11 @@ impl Game<'_> {
         }
         match touch.phase {
             TouchPhase::Started => {
-                let finger = if self.touch_close_shown() && gui.close_hit(p) {
+                let finger = if self.touch_profile_shown() && gui.profile_hit(p) {
+                    #[cfg(target_os = "android")]
+                    super::android_ime::open_profile();
+                    Finger::Done
+                } else if self.touch_close_shown() && gui.close_hit(p) {
                     self.touch_back();
                     Finger::Done
                 } else if !self.touch_controls_shown() {

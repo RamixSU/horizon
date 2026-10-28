@@ -39,6 +39,7 @@
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|keyboard|navigation|uiMode|density|smallestScreenSize">
             <meta-data android:name="android.app.lib_name" android:value="horizon" />
         </activity>
+        <activity android:name=".ProfileActivity" android:exported="false" android:theme="@android:style/Theme.Material.NoActionBar" android:windowSoftInputMode="adjustResize" />
         <service
             android:name=".SetupService"
             android:exported="false"

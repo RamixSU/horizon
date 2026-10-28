@@ -43,6 +43,11 @@ public class HorizonActivity extends NativeActivity {
         addContentView(sink, new ViewGroup.LayoutParams(1, 1));
     }
 
+    /** Called from the game thread: the profile screen (name, skin). */
+    public void openProfile() {
+        startActivity(new android.content.Intent(this, ProfileActivity.class));
+    }
+
     /** Called from the game thread. */
     public void showKeyboard(final boolean show) {
         runOnUiThread(new Toggle(this, show));

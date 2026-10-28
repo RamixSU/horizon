@@ -33,13 +33,13 @@ public class SetupService extends Service implements Runnable {
         nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         if (android.os.Build.VERSION.SDK_INT >= 26) {
             nm.createNotificationChannel(new NotificationChannel(CHANNEL,
-                    "Загрузка файлов игры / Game files download", NotificationManager.IMPORTANCE_LOW));
+                    Ui.t("Загрузка файлов игры", "Game files download"), NotificationManager.IMPORTANCE_LOW));
         }
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Notification n = build("Подготовка / Preparing", 0, true, true);
+        Notification n = build(Ui.t("Подготовка", "Preparing"), 0, true, true);
         if (android.os.Build.VERSION.SDK_INT >= 29) {
             startForeground(ID, n, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
         } else {
@@ -91,7 +91,7 @@ public class SetupService extends Service implements Runnable {
         long files = Long.parseLong(p[1]), filesTotal = Long.parseLong(p[2]);
         long bytes = Long.parseLong(p[3]), bytesTotal = Long.parseLong(p[4]);
         if (p[5].equals("done") || p[5].equals("error") || p[5].equals("idle")) {
-            String text = p[5].equals("done") ? "Готово / Ready" : "Ошибка / Error: " + p[6];
+            String text = p[5].equals("done") ? Ui.t("Файлы игры готовы", "Game files are ready") : SetupActivity.friendlyError(p[6]);
             stopForeground(true);
             nm.notify(ID + 1, build(text, 0, false, false));
             stopSelf();

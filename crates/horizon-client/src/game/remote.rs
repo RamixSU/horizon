@@ -3245,7 +3245,7 @@ impl Game<'_> {
         self.skin_slots.push((location, slot));
     }
     /// Whether a downloaded skin is in the atlas, marking it recently shown.
-    fn show_skin(&mut self, location: &str) -> bool {
+    pub(super) fn show_skin(&mut self, location: &str) -> bool {
         let Some(i) = self.skin_slots.iter().position(|e| e.0 == location) else {
             return false;
         };
@@ -3754,6 +3754,7 @@ impl Game<'_> {
         self.tick_avatar(before, false);
         // The player's own model (third person, the inventory's preview).
         self.tick_player_model();
+        self.tick_local_skin();
         if !dead {
             self.remote_tick_using();
         }

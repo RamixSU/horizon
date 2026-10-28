@@ -63,3 +63,21 @@ pub(super) fn show(show: bool) {
         log::warn!("Horizon: soft keyboard: {e}");
     }
 }
+
+/// Open the profile screen (`HorizonActivity.openProfile`): name and skin.
+pub(super) fn open_profile() {
+    let Some(app) = super::ANDROID_APP.get() else {
+        return;
+    };
+    // SAFETY: as in `show`.
+    let result = (|| -> jni::errors::Result<()> {
+        let vm = unsafe { jni::JavaVM::from_raw(app.vm_as_ptr().cast())? };
+        let mut env = vm.attach_current_thread_permanently()?;
+        let activity = unsafe { jni::objects::JObject::from_raw(app.activity_as_ptr().cast()) };
+        env.call_method(&activity, "openProfile", "()V", &[])?;
+        Ok(())
+    })();
+    if let Err(e) = result {
+        log::warn!("Horizon: profile screen: {e}");
+    }
+}

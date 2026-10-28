@@ -81,6 +81,7 @@ mod jukebox;
 mod lan;
 mod lan_actions;
 mod lan_attributes;
+mod local_skin;
 mod lan_chat;
 mod lan_crafting;
 mod lan_entities;
@@ -1944,6 +1945,8 @@ struct Game<'a> {
     fangs: fangs::FangState,
     /// The local player as a model (third person, the inventory).
     player_model: Option<Mob>,
+    /// The player's own skin file (`local_skin`).
+    local_skin: local_skin::LocalSkin,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 enum Dim {
@@ -5899,6 +5902,7 @@ impl Game<'_> {
                 self.cursor,
                 self.settings.file.bool("hideSplashTexts"),
             );
+            self.draw_touch_controls(&mut batch);
             return batch;
         }
         let atlas_ptr: *const HudAtlas = &self.gui.atlas;
@@ -8799,6 +8803,7 @@ impl Game<'_> {
         self.spawn_phantoms();
         self.tick_advancements();
         self.tick_player_model();
+        self.tick_local_skin();
         Ok(())
     }
     /// SkyRenderer.renderSunMoonAndStars: bodies on a frame rotated Y -90 then X by angle.
@@ -13965,6 +13970,7 @@ impl<'a> Game<'a> {
             camera_type: Default::default(),
             fangs: Default::default(),
             player_model: None,
+            local_skin: Default::default(),
         })
     }
 }

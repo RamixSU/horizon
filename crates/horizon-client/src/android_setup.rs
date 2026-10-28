@@ -340,7 +340,7 @@ fn run(home: &Path, derived: &str) -> Result<(), String> {
     } else {
         let url = derived.trim();
         if url.is_empty() {
-            return Err("No derived pack: enter its URL or put horizon-derived.zip in the app folder".into());
+            return Err("No derived pack: put horizon-derived.zip in the app folder".into());
         }
         let target = work.join("derived.zip");
         if !target.is_file() {

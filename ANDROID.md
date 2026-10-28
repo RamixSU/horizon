@@ -129,3 +129,23 @@ the URL on the setup screen (or the build's `HORIZON_DERIVED_URL`), or from
 publish it.
 
 A folder already prepared on a PC and pushed to `files/resources` is used as before.
+
+## Profile: name and skin
+
+The person icon at the top left of the title and pause screens (and the
+"Profile" button on the first-run screen) opens the profile screen.
+
+- **Name**: 3–16 characters, `A-Z a-z 0-9 _`, saved as `name:<NAME>` in
+  `files/horizon-player.txt`. It is the offline name used on servers and LAN
+  and applies after a restart. Single-player worlds still call the local
+  player `Player`.
+- **Skin**: a 64x64 or 64x32 PNG picked with the system file picker, copied
+  to `files/horizon-skin.png`. Arms: classic or slim, in
+  `files/horizon-skin.txt`. The game checks these files every second, so a
+  new skin shows on your own player (third person, tab list) right away.
+  Offline servers have no texture service, so other players still see the
+  default skin.
+
+The first-run screen follows the system language (Russian or English). The
+derived pack is taken from `HORIZON_DERIVED_URL` set at build time or from
+`files/horizon-derived.zip`. If neither exists, the screen says so.
