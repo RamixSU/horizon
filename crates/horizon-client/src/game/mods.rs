@@ -237,7 +237,7 @@ pub(super) fn content_root(
             Err(e) => log::warn!("Horizon: mod {} content not loaded: {e}", m.id),
         }
     }
-    match mod_content::resource_root(root, &mods, &here.join(".horizon-cache")) {
+    match mod_content::resource_root(root, &mods, &std::env::var_os("HORIZON_CACHE").map(std::path::PathBuf::from).unwrap_or_else(|| here.join(".horizon-cache"))) {
         Ok(out) => {
             if out != root {
                 log::info!(

@@ -21,9 +21,12 @@ use std::{
 
 /// Where overlay roots are built (beside options.txt).
 pub fn cache_dir() -> PathBuf {
-    std::env::current_dir()
-        .unwrap_or_default()
-        .join(".horizon-cache/resourcepacks")
+    // HORIZON_CACHE: on Android the overlay lives in internal storage, since
+    // shared storage (/sdcard) refuses symlinks.
+    std::env::var_os("HORIZON_CACHE")
+        .map(PathBuf::from)
+        .unwrap_or_else(|| std::env::current_dir().unwrap_or_default().join(".horizon-cache"))
+        .join("resourcepacks")
 }
 pub fn packs_dir() -> PathBuf {
     std::env::current_dir()
