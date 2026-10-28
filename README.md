@@ -30,30 +30,38 @@
 2. Открой его на телефоне (разреши «установку из неизвестных источников») или `adb install -r horizon.apk`.
 3. Нужен Android 8.0+ и arm64.
 
-### Подготовка игровых файлов (на ПК)
+### Файлы игры
 
-Нужны Java и Rust. В папке этого репозитория:
+При первом запуске приложение само скачает почти все файлы игры (около 525 МБ, лучше по Wi-Fi). Загрузка идёт в фоне, её можно свернуть, а если оборвётся, продолжится с того же места.
 
-```sh
-cargo run --release -p horizon-prepare -- --prepare --server-jar ~/Downloads/server.jar
-cargo run --release -p horizon-prepare -- sounds     # по желанию, для звука
-```
+Есть одно но: небольшой архив `horizon-derived.zip` (около 4 МБ) телефон собрать сам не может, его делают инструменты Horizon на Java. Его нужно один раз сделать на ПК и закинуть на телефон. Выложить его сюда я не могу, потому что он получен из файлов игры.
 
-Запусти приложение на телефоне один раз (чтобы Android создал папку), потом скопируй *содержимое*
-`.local/horizon-client/26.3/` (там где `horizon-resources.json`) в:
+**Как сделать архив (один раз, на ПК с Java 25 и Rust):**
 
-```
-/sdcard/Android/data/dev.horizonlab.horizon/files/resources/
-```
+1. Скачай этот репозиторий и открой в нём терминал.
+2. Скачай `server.jar` версии 26.3 с официального сайта Minecraft и подготовь файлы игры:
+   ```sh
+   cargo run --release -p horizon-prepare -- --prepare --server-jar ~/Downloads/server.jar
+   ```
+3. Упакуй архив:
+   ```sh
+   bash packaging/android/make_derived_pack.sh
+   ```
+   Готовый файл появится в `target/android/horizon-derived.zip`.
 
-Например:
+**Как закинуть на телефон:**
 
-```sh
-adb shell mkdir -p /sdcard/Android/data/dev.horizonlab.horizon/files/resources
-adb push .local/horizon-client/26.3/. /sdcard/Android/data/dev.horizonlab.horizon/files/resources/
-```
+1. Запусти Horizon один раз, чтобы Android создал папку игры.
+2. Скопируй `horizon-derived.zip` в папку
+   `/storage/emulated/0/Android/data/dev.horizonlab.horizon/files/`
+   (через провод, файловый менеджер с доступом к `Android/data` или `adb push horizon-derived.zip /sdcard/Android/data/dev.horizonlab.horizon/files/`).
+3. В приложении нажми «Повторить», загрузка дойдёт до конца, и игра запустится.
 
-Подробности в [ANDROID.md](ANDROID.md).
+Если друг уже сделал архив, можно взять у него, он одинаковый для всех на версии 26.3.
+
+Не удаляй приложение без нужды: Android при удалении стирает его папку вместе со скачанными файлами, сохранениями и архивом. Для обновления просто ставь новый APK поверх старого.
+
+Как подготовить все файлы на ПК целиком, без загрузки на телефоне, написано в [ANDROID.md](ANDROID.md).
 
 ### Управление
 
@@ -107,30 +115,38 @@ The original README lives in [README.upstream.md](README.upstream.md).
 2. Open it on your phone (allow "install unknown apps") or run `adb install -r horizon.apk`.
 3. Needs Android 8.0+ and an arm64 device.
 
-### Preparing game files (on a PC)
+### Game files
 
-You'll need Java and Rust. From this repo:
+On first launch the app downloads almost all game files by itself (about 525 MB, Wi-Fi recommended). It runs in the background, and if it gets interrupted it picks up where it left off.
 
-```sh
-cargo run --release -p horizon-prepare -- --prepare --server-jar ~/Downloads/server.jar
-cargo run --release -p horizon-prepare -- sounds     # optional, for sound
-```
+One catch: a small archive, `horizon-derived.zip` (about 4 MB), can't be built on the phone because Horizon makes it with Java tools. You need to build it once on a PC and copy it to the phone. I can't upload it here because it's derived from the game files.
 
-Launch the app once (so Android creates its folder), then copy the *contents* of `.local/horizon-client/26.3/`
-(the folder with `horizon-resources.json`) to:
+**Building the archive (once, on a PC with Java 25 and Rust):**
 
-```
-/sdcard/Android/data/dev.horizonlab.horizon/files/resources/
-```
+1. Clone this repo and open a terminal in it.
+2. Download the 26.3 `server.jar` from the official Minecraft site and prepare the game files:
+   ```sh
+   cargo run --release -p horizon-prepare -- --prepare --server-jar ~/Downloads/server.jar
+   ```
+3. Pack the archive:
+   ```sh
+   bash packaging/android/make_derived_pack.sh
+   ```
+   The file ends up in `target/android/horizon-derived.zip`.
 
-For example:
+**Copying it to the phone:**
 
-```sh
-adb shell mkdir -p /sdcard/Android/data/dev.horizonlab.horizon/files/resources
-adb push .local/horizon-client/26.3/. /sdcard/Android/data/dev.horizonlab.horizon/files/resources/
-```
+1. Launch Horizon once so Android creates the game folder.
+2. Copy `horizon-derived.zip` to
+   `/storage/emulated/0/Android/data/dev.horizonlab.horizon/files/`
+   (over USB, with a file manager that can open `Android/data`, or `adb push horizon-derived.zip /sdcard/Android/data/dev.horizonlab.horizon/files/`).
+3. Tap "Retry" in the app. The download finishes and the game starts.
 
-More details in [ANDROID.md](ANDROID.md).
+If a friend already built the archive, you can just take theirs; it's the same for everyone on 26.3.
+
+Don't uninstall the app unless you have to: Android wipes its folder, including downloaded files, saves and the archive. To update, just install the new APK over the old one.
+
+To prepare everything on a PC without the on-phone download, see [ANDROID.md](ANDROID.md).
 
 ### Controls
 
