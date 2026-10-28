@@ -161,4 +161,4 @@ MIT, same as the original. The [LICENSE](LICENSE) file and the original authors'
 
 ---
 
-Port:  [Rayan-XOO](https://github.com/Rayan-XOO)
+Автор порта / Port author: [Rayan-XOO](https://github.com/Rayan-XOO)
