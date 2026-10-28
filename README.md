@@ -65,6 +65,8 @@
 
 Не удаляй приложение без нужды: Android при удалении стирает его папку вместе со скачанными файлами, сохранениями и архивом. Для обновления просто ставь новый APK поверх старого.
 
+Папка игры видна в приложении «Файлы» как «Horizon» (на Samsung через «Файлы» от Google или любой файловый менеджер с SAF). Там лежат `resourcepacks`, `shaderpacks` и `saves`, так что ресурспаки и шейдеры можно просто туда скопировать, без провода и `Android/data`.
+
 Как подготовить все файлы на ПК целиком, без загрузки на телефоне, написано в [ANDROID.md](ANDROID.md).
 
 ### Управление
@@ -153,6 +155,8 @@ One catch: a small archive, `horizon-derived.zip` (about 4 MB), can't be built o
 If a friend already built the archive, you can just take theirs; it's the same for everyone on 26.3.
 
 Don't uninstall the app unless you have to: Android wipes its folder, including downloaded files, saves and the archive. To update, just install the new APK over the old one.
+
+The game folder also shows up in the Files app as "Horizon" (on Samsung use Google's "Files" app or any file manager with SAF). Inside are `resourcepacks`, `shaderpacks` and `saves`, so you can just drop resource packs and shaders in there, no cable or `Android/data` needed.
 
 To prepare everything on a PC without the on-phone download, see [ANDROID.md](ANDROID.md).
 
