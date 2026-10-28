@@ -87,3 +87,10 @@ folder is used instead (reachable only with `adb shell run-as` on a debug build)
   buffers on Mali/Adreno GLES) or on memory (`largeHeap` is set; the world uses a lot of RAM: try render distance 4–6).
 - HDR (`horizon-hdr`) and Discord presence compile but do nothing useful on Android.
 - Touch zones are not drawn on screen.
+
+## Notes from the first device run (Galaxy S25, Adreno 830, Vulkan)
+
+- Reaches the title screen, the menus and a single-player world; touch drives the menus. Uses about 2.2 GB RAM.
+- Without a launcher install, a `~/.minecraft` built from Mojang's piston-meta works for horizon-prepare
+  (versions/26.3/26.3.json + jar, libraries, assets). If prepare rejects `26.3.json` as unknown, save the URL it
+  prints as `.local/minecraft/26.3/manifest.json` and run it again. Use a JDK 25 (`JAVA_HOME`).
