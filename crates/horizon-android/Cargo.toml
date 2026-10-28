@@ -15,6 +15,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 horizon-client = { path = "../horizon-client", default-features = false }
+horizon-prepare = { path = "../horizon-prepare" }
 horizon-assets = { path = "../horizon-assets" }
 horizon-client-core = { path = "../horizon-client-core" }
 horizon-client-input = { path = "../horizon-client-input" }

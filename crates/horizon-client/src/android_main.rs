@@ -3,6 +3,7 @@
 //! same game; this file only replaces `main` with `android_main`.
 #![cfg(target_os = "android")]
 #![allow(dead_code)]
+mod android_setup;
 mod game;
 
 use horizon_client::{crash, logging};
