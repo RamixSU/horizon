@@ -94,3 +94,18 @@ folder is used instead (reachable only with `adb shell run-as` on a debug build)
 - Without a launcher install, a `~/.minecraft` built from Mojang's piston-meta works for horizon-prepare
   (versions/26.3/26.3.json + jar, libraries, assets). If prepare rejects `26.3.json` as unknown, save the URL it
   prints as `.local/minecraft/26.3/manifest.json` and run it again. Use a JDK 25 (`JAVA_HOME`).
+
+## Soft keyboard, F-keys, layout editor (ce10266+)
+
+- `HorizonActivity` (packaging/android/java) extends NativeActivity. Its hidden view
+  takes IME text and passes it to Rust through JNI (`game/android_ime.rs`). The keyboard
+  opens by itself whenever a text field has focus: chat, signs, books, searches, server
+  IP, world name. Building it needs JDK 21 `javac` on PATH (the JDK 25 output breaks d8 34).
+- Top-left row: F1 (hide HUD), F2 (screenshot), F3 (debug), F5 (camera), then the gear
+  for the layout editor.
+- Layout editor: drag a control to move it; tap it to select it; then use Size±, Alpha±,
+  All± (global opacity), Hide/Show, Reset, Save. Save writes `touch_layout.json` in the
+  game directory. Back leaves the editor without saving.
+- Attack and use have their own buttons. A quick tap in the world attacks the entity
+  under the crosshair, or uses if there isn't one. Holding still breaks blocks.
+- The window now draws under the display cutout (shortEdges).
