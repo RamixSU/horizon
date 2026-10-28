@@ -72,6 +72,9 @@ public class SetupActivity extends Activity
         url.setSingleLine(true);
         url.setTextColor(Color.WHITE);
         url.setTextSize(13);
+        url.setBackgroundColor(Color.rgb(52, 52, 60));
+        url.setHintTextColor(Color.GRAY);
+        url.setPadding(dp(8), dp(8), dp(8), dp(8));
         SharedPreferences prefs = getPreferences(MODE_PRIVATE);
         url.setText(prefs.getString("derived_url", nativeDefaultUrl()));
         if (new File(dir, "horizon-derived.zip").isFile()) {
@@ -92,6 +95,9 @@ public class SetupActivity extends Activity
         scroll.addView(box);
         setContentView(scroll);
         // A run still going (the activity was recreated) keeps showing its progress.
+        if (android.os.Build.VERSION.SDK_INT >= 33) {
+            requestPermissions(new String[] {"android.permission.POST_NOTIFICATIONS"}, 1);
+        }
         if (nativeStatus().contains("\trun\t")) {
             begin();
         }
@@ -135,11 +141,18 @@ public class SetupActivity extends Activity
         getPreferences(MODE_PRIVATE).edit().putString("derived_url", u).apply();
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         button.setEnabled(false);
-        nativeStart(home, u);
+        Intent service = new Intent(this, SetupService.class);
+        service.putExtra("home", home);
+        service.putExtra("url", u);
+        if (android.os.Build.VERSION.SDK_INT >= 26) {
+            startForegroundService(service);
+        } else {
+            startService(service);
+        }
         handler.post(poll);
     }
 
-    private static String stageName(String s) {
+    static String stageName(String s) {
         if (s.equals("version")) return "Версия / Version";
         if (s.equals("client")) return "Клиент / Client JAR";
         if (s.equals("index")) return "Индекс / Asset index";
