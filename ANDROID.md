@@ -114,7 +114,7 @@ folder is used instead (reachable only with `adb shell run-as` on a debug build)
 
 When `files/resources` has no finished preparation, the app opens a setup screen
 (`SetupActivity`, `crates/horizon-client/src/android_setup.rs`) instead of the game. One button
-downloads from Mojang, checking every SHA-1: the version JSON, the client JAR (must match
+downloads the official game files, checking every SHA-1: the version JSON, the client JAR (must match
 `research-lock.json`'s `client_sha1`), the asset index and its sounds, fonts, languages, panorama
 and built-in packs (about 525 MB in total, 8 parallel connections). The JAR's assets, data, tag
 and worldgen bundles are then unpacked in Rust (`horizon_prepare::device`), the same bytes

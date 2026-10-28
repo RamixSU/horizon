@@ -67,8 +67,8 @@ public class SetupActivity extends Activity
         card.addView(Ui.text(this, "Horizon", 30, Ui.TEXT, true));
         card.addView(Ui.text(this, Ui.t("Первый запуск", "First launch"), 15, Ui.MUTED, false));
         card.addView(Ui.text(this, Ui.t(
-                "Игре нужны файлы Minecraft 26.3. Они скачаются прямо с серверов Mojang, около 700 МБ. Лучше подключиться к Wi-Fi.",
-                "The game needs the Minecraft 26.3 files. They are downloaded straight from Mojang, about 700 MB. Wi-Fi is best."),
+                "Игре нужны файлы Minecraft 26.3. Они скачаются автоматически, около 700 МБ. Лучше подключиться к Wi-Fi.",
+                "The game needs the Minecraft 26.3 files. They will be downloaded automatically, about 700 MB. Wi-Fi is best."),
                 15, Ui.TEXT, false), Ui.gap(this, 12));
         note = Ui.text(this, "", 14, Ui.WARN, false);
         note.setVisibility(View.GONE);
