@@ -78,7 +78,7 @@ folder is used instead (reachable only with `adb shell run-as` on a debug build)
 | Text input | no on-screen keyboard (chat, sign editing, world names need a physical keyboard) |
 | Surface | dropped on `suspended`, recreated on `resumed` (`Renderer::lose_surface/regain_surface`) |
 | Resources | `HORIZON_RESOURCES` (set by `android_main`) |
-| Logs | `files/logs/latest.log` (nothing in logcat) |
+| Logs | `/storage/emulated/0/Android/data/dev.horizonlab.horizon/files/logs/latest.log`, crash reports in `crash-reports/` beside it (nothing in logcat). Any file manager with access to Android/data, or `adb pull` |
 | Launcher, horizon-prepare, server binary, telemetry server | not built |
 
 ## Known risks

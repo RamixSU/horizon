@@ -72,7 +72,7 @@ Samsung Galaxy S25 (Adreno 830, Vulkan). Доходит до меню и оди�
 ### Известные проблемы
 
 - Ест около **2,2 ГБ ОЗУ**, на слабых телефонах может вылетать. Попробуй дальность прорисовки 4-6.
-- Это **ранняя, экспериментальная** версия: баги будут. Логи — в `files/logs/latest.log`.
+- Это **ранняя, экспериментальная** версия: баги будут. Лог: `/storage/emulated/0/Android/data/dev.horizonlab.horizon/files/logs/latest.log`, отчёты о вылетах рядом в `crash-reports/`. Открывается любым файловым менеджером (на новых Android папка Android/data видна не всем менеджерам, тогда нужен менеджер с доступом к ней или `adb pull`).
 
 ### Сборка
 
@@ -149,7 +149,7 @@ Samsung Galaxy S25 (Adreno 830, Vulkan). Gets to the menus and a single-player w
 ### Known issues
 
 - Uses around **2.2 GB of RAM**, weaker phones may crash. Try render distance 4-6.
-- This is an **early, experimental** build, so expect bugs. Logs are in `files/logs/latest.log`.
+- This is an **early, experimental** build, so expect bugs. Log: `/storage/emulated/0/Android/data/dev.horizonlab.horizon/files/logs/latest.log`, crash reports next to it in `crash-reports/`. Any file manager can open it (on newer Android, Android/data needs a file manager that has access to it, or use `adb pull`).
 
 ### Building
 

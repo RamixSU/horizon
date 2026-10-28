@@ -26,7 +26,8 @@ import java.io.File;
  * The launcher activity. Starts the game when the resources are ready; otherwise shows the
  * first-run screen that downloads and prepares the game files on the phone (android_setup.rs).
  */
-public class SetupActivity extends Activity {
+public class SetupActivity extends Activity
+        implements View.OnClickListener, DialogInterface.OnClickListener, Runnable {
     static {
         System.loadLibrary("horizon");
     }
@@ -79,11 +80,7 @@ public class SetupActivity extends Activity {
         box.addView(url);
         button = new Button(this);
         button.setText("Скачать файлы игры / Download game files");
-        button.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                confirm();
-            }
-        });
+        button.setOnClickListener(this);
         box.addView(button);
         bar = new ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal);
         bar.setMax(1000);
@@ -125,11 +122,7 @@ public class SetupActivity extends Activity {
             new AlertDialog.Builder(this)
                     .setTitle("Мобильная сеть / Mobile data")
                     .setMessage("Вы не на Wi-Fi. Скачать ~700 МБ? / You are not on Wi-Fi. Download ~700 MB?")
-                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface d, int w) {
-                            begin();
-                        }
-                    })
+                    .setPositiveButton("OK", this)
                     .setNegativeButton("Cancel", null)
                     .show();
         } else {
@@ -156,8 +149,18 @@ public class SetupActivity extends Activity {
         return s;
     }
 
-    private final Runnable poll = new Runnable() {
-        public void run() {
+    public void onClick(View v) {
+        confirm();
+    }
+
+    public void onClick(DialogInterface d, int w) {
+        begin();
+    }
+
+    private final Runnable poll = this;
+
+    public void run() {
+        {
             String[] p = nativeStatus().split("\t", -1);
             if (p.length < 7) {
                 handler.postDelayed(this, 300);
@@ -189,7 +192,7 @@ public class SetupActivity extends Activity {
             status.setText(line);
             handler.postDelayed(this, 300);
         }
-    };
+    }
 
     private void launch() {
         startActivity(new Intent(this, HorizonActivity.class));
