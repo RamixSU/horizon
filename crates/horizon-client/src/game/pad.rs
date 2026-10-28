@@ -33,7 +33,7 @@ pub(super) struct Pads {
     /// The virtual pad was in use at the last poll.
     virtual_input: bool,
     /// Buttons a `pad ... tap` releases at the next poll.
-    taps: Vec<Button>,
+    pub(super) taps: Vec<Button>,
     edges: Edges,
     /// The game tick each button went down in, and releases held back until
     /// a tick has passed: vanilla samples keys once per tick, so a click

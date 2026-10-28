@@ -5870,6 +5870,7 @@ impl Game<'_> {
         self.frame_graph
             .draw(self.settings.horizon.overlay, &mut batch, &self.gui.atlas);
         self.draw_pad_cursor(&mut batch);
+        self.draw_touch_controls(&mut batch);
         batch
     }
     fn hud_layers(&mut self, size: [u32; 2]) -> HudBatch {
@@ -12539,6 +12540,15 @@ impl ApplicationHandler for Game<'_> {
         if self.window.as_ref().is_none_or(|w| w.id() != id) {
             return;
         }
+        // Android's back button or gesture: Escape (close the screen, or pause).
+        if let WindowEvent::KeyboardInput { event: key, .. } = &event
+            && key.logical_key == winit::keyboard::Key::Named(winit::keyboard::NamedKey::BrowserBack)
+        {
+            if key.state == ElementState::Pressed && !key.repeat {
+                self.touch_back();
+            }
+            return;
+        }
         if let WindowEvent::Touch(touch) = &event {
             self.touch_event(event_loop, *touch);
             return;
@@ -13505,6 +13515,7 @@ impl ApplicationHandler for Game<'_> {
         if self.pending_save.is_some() {
             return;
         }
+        self.touch_frame();
         self.poll_pads(event_loop);
         if self.options.frames.is_some() && self.started.elapsed() > self.options.timeout {
             self.error = Some("frame-limited run timed out".into());
