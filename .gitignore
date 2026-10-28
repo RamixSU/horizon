@@ -34,3 +34,8 @@
 
 # Release-only compiled original exporter bundle.
 /exporters/
+
+# Android release signing keys: never commit.
+*.jks
+*.keystore
+.horizon-keys/

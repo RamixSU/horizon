@@ -30,6 +30,10 @@
 2. Открой его на телефоне (разреши «установку из неизвестных источников») или `adb install -r horizon.apk`.
 3. Нужен Android 8.0+ и arm64.
 
+**Обновление с 0.2.0 и старше.** С версии 0.2.1 приложение подписано новым ключом, поэтому поверх старой версии оно не встанет. Старую придётся один раз удалить, а при удалении Android стирает данные игры. Перед этим скопируй миры из `Android/data/dev.horizonlab.horizon/files/saves` куда-нибудь в другое место, а после установки верни обратно.
+
+**Если Play Защита ругается.** Google часто предупреждает о любых приложениях не из Play Маркета, которые он ещё не видел. Нажми «Подробнее» → «Всё равно установить». Код приложения открыт, он весь в этом репозитории. Если хочешь, можно отправить приложение Google на перепроверку через [официальную форму](https://support.google.com/googleplay/android-developer/contact/protectappeals).
+
 ### Файлы игры
 
 При первом запуске приложение само скачает почти все файлы игры (около 525 МБ, лучше по Wi-Fi). Загрузка идёт в фоне, её можно свернуть, а если оборвётся, продолжится с того же места.
@@ -114,6 +118,10 @@ The original README lives in [README.upstream.md](README.upstream.md).
 1. Grab `horizon.apk` from [Releases](https://github.com/Rayan-XOO/horizon/releases).
 2. Open it on your phone (allow "install unknown apps") or run `adb install -r horizon.apk`.
 3. Needs Android 8.0+ and an arm64 device.
+
+**Upgrading from 0.2.0 or older.** Starting with 0.2.1 the app is signed with a new key, so it won't install over the old one. Uninstall the old version once; Android wipes the game data when you do. Copy your worlds from `Android/data/dev.horizonlab.horizon/files/saves` somewhere safe first and put them back after installing.
+
+**If Play Protect complains.** Google often warns about apps from outside the Play Store that it hasn't seen before. Tap "More details" → "Install anyway". The app is open source; all of the code is in this repo. If you like, you can ask Google to re-check it through the [official form](https://support.google.com/googleplay/android-developer/contact/protectappeals).
 
 ### Game files
 
