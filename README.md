@@ -1,15 +1,36 @@
-# Horizon для Android / Horizon for Android (unofficial)
+<p align="center">
+  <img src="docs/media/icon-256.png" width="128" alt="Horizon">
+</p>
 
-Русский ниже, English further down.
+<h1 align="center">Horizon для Android / Horizon for Android</h1>
 
-**Сырой проект, требует много допила.** Работает, но многое ещё не доделано и не отполировано.
-**Raw, early project that still needs a lot of polishing.** It runs, but plenty is unfinished.
+<p align="center">
+  Неофициальный порт Horizon (Minecraft: Java Edition на Rust) на Android<br>
+  Unofficial Android port of Horizon, Minecraft: Java Edition rewritten in Rust
+</p>
 
----
+<p align="center">
+  <a href="https://github.com/Rayan-XOO/horizon/releases/latest"><img src="https://img.shields.io/github/v/release/Rayan-XOO/horizon?label=release" alt="Latest release"></a>
+  <a href="https://github.com/Rayan-XOO/horizon/releases"><img src="https://img.shields.io/github/downloads/Rayan-XOO/horizon/total" alt="Downloads"></a>
+  <img src="https://img.shields.io/badge/Android-8.0%2B%20arm64-3DDC84?logo=android&logoColor=white" alt="Android 8.0+">
+  <img src="https://img.shields.io/badge/Minecraft-Java%2026.3-5D9C3F" alt="Minecraft Java 26.3">
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/Rayan-XOO/horizon" alt="License"></a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/Rayan-XOO/horizon/releases/latest"><b>Скачать APK / Download APK</b></a> ·
+  <a href="#русский">Русский</a> ·
+  <a href="#english">English</a>
+</p>
+
+> Ранняя версия, многое ещё не доделано. / Early build, plenty is still unfinished.
 
 ## Русский
 
 ### Что это
+
+Horizon — это Minecraft: Java Edition 26.3, заново написанный на Rust (нативный клиент, не Java). Этот форк запускает его на Android-телефонах: Vulkan-рендер, сенсорное управление, загрузка файлов игры прямо на телефоне.
+
 
 Это неофициальный порт [Horizon](https://github.com/horizon-rust/horizon) на Android. Проект — форк
 репозитория https://github.com/horizon-rust/horizon, и вся основная работа - заслуга оригинальных авторов Horizon.
@@ -18,11 +39,31 @@
 
 Оригинальный README лежит в [README.upstream.md](README.upstream.md).
 
+### Возможности
+
+- Нативная игра на Rust, без Java и эмуляции; рендер через Vulkan (запасной вариант GLES 3).
+- Сенсорное управление: джойстик, кнопки, бег, удар с поворотом камеры одним пальцем.
+- Редактор раскладки кнопок (положение, размер, прозрачность).
+- Экранная клавиатура в чате, табличках и полях поиска.
+- Файлы игры скачиваются в самом приложении, с докачкой после обрыва.
+- Папка игры видна в «Файлах»: ресурспаки, шейдеры и миры без провода.
+
 ### Важно
 
 - Я **никак не связан** с разработчиками Horizon, с Mojang или Microsoft. Это любительский проект.
 - В репозитории и в APK **нет никаких файлов Minecraft**. Нужна своя **легальная копия Minecraft Java Edition**,
   а игровые файлы ты готовишь сам.
+
+### Скриншоты
+
+Скриншоты из оригинального Horizon (на ПК), игра на телефоне выглядит так же.
+
+<p align="center">
+  <img src="docs/media/survival.jpg" width="49%" alt="Выживание">
+  <img src="docs/media/village.jpg" width="49%" alt="Деревня">
+  <img src="docs/media/sunset.jpg" width="49%" alt="Закат">
+  <img src="docs/media/underwater.jpg" width="49%" alt="Под водой">
+</p>
 
 ### Установка
 
@@ -88,9 +129,23 @@ Samsung Galaxy S25 (Adreno 830, Vulkan). Доходит до меню и оди�
 - Ест около **2,2 ГБ ОЗУ**, на слабых телефонах может вылетать. Попробуй дальность прорисовки 4-6.
 - Это **ранняя, экспериментальная** версия: баги будут. Лог: `/storage/emulated/0/Android/data/dev.horizonlab.horizon/files/logs/latest.log`, отчёты о вылетах рядом в `crash-reports/`. Открывается любым файловым менеджером (на новых Android папка Android/data видна не всем менеджерам, тогда нужен менеджер с доступом к ней или `adb pull`).
 
+### Частые вопросы
+
+**Play Защита пишет, что приложение небезопасно.** Так бывает с любым APK не из Play Маркета. «Подробнее» → «Всё равно установить». Весь код открыт в этом репозитории.
+
+**Какие разрешения нужны?** Интернет и состояние сети (скачать файлы игры), уведомления и фоновая работа (чтобы загрузка не прерывалась в свёрнутом виде). Доступ к памяти не запрашивается: всё хранится в папке приложения.
+
+**Нужна ли лицензия Minecraft?** Да, нужна своя легальная копия Minecraft: Java Edition. В APK нет ни одного файла игры.
+
+**Будет ли работать на моём телефоне?** Нужны Android 8.0+, arm64 и желательно от 4 ГБ ОЗУ. Проверено на Galaxy S25, на других устройствах может по-разному.
+
 ### Сборка
 
 Инструкции по сборке APK в [ANDROID.md](ANDROID.md).
+
+### Благодарности
+
+Вся основная работа над игрой сделана авторами [Horizon](https://github.com/horizon-rust/horizon) ([playhorizon.dev](https://playhorizon.dev)).
 
 ### Лицензия
 
@@ -102,6 +157,9 @@ MIT, как и оригинал. Файл [LICENSE](LICENSE) и копирайт
 
 ### What is this
 
+Horizon is Minecraft: Java Edition 26.3 rewritten from scratch in Rust (a native client, no Java). This fork runs it on Android phones: Vulkan rendering, touch controls and an in-app game file download.
+
+
 This is an unofficial Android port of [Horizon](https://github.com/horizon-rust/horizon). It's a fork of
 https://github.com/horizon-rust/horizon, and almost all the real work belongs to the original Horizon authors,
 thanks to them. I just added what's needed to run it on a phone: APK packaging, touch controls, an on-screen
@@ -109,11 +167,31 @@ keyboard and a few small things.
 
 The original README lives in [README.upstream.md](README.upstream.md).
 
+### Features
+
+- Native Rust game, no Java VM or emulation; Vulkan rendering with a GLES 3 fallback.
+- Touch controls: joystick, buttons, sprint toggle, attack while turning the camera with one finger.
+- Button layout editor (position, size, opacity).
+- On-screen keyboard for chat, signs and search fields.
+- Game files are downloaded inside the app and resume after interruptions.
+- Game folder shows up in the Files app: resource packs, shaders and worlds without a cable.
+
 ### Heads up
 
 - I'm **not affiliated** with the Horizon developers, Mojang or Microsoft. This is a hobby project.
 - **No Minecraft files are included** in this repo or the APK. You need your own **legit copy of Minecraft Java
   Edition** and you prepare the game files yourself.
+
+### Screenshots
+
+Screenshots from the original Horizon on PC; the phone build renders the same game.
+
+<p align="center">
+  <img src="docs/media/survival.jpg" width="49%" alt="Survival">
+  <img src="docs/media/village.jpg" width="49%" alt="Village">
+  <img src="docs/media/sunset.jpg" width="49%" alt="Sunset">
+  <img src="docs/media/underwater.jpg" width="49%" alt="Underwater">
+</p>
 
 ### Install
 
@@ -179,9 +257,23 @@ Samsung Galaxy S25 (Adreno 830, Vulkan). Gets to the menus and a single-player w
 - Uses around **2.2 GB of RAM**, weaker phones may crash. Try render distance 4-6.
 - This is an **early, experimental** build, so expect bugs. Log: `/storage/emulated/0/Android/data/dev.horizonlab.horizon/files/logs/latest.log`, crash reports next to it in `crash-reports/`. Any file manager can open it (on newer Android, Android/data needs a file manager that has access to it, or use `adb pull`).
 
+### FAQ
+
+**Play Protect says the app is unsafe.** That happens with most APKs from outside the Play Store. Tap "More details" → "Install anyway". All the code is in this repo.
+
+**What permissions does it need?** Internet and network state (to download the game files), notifications and a foreground service (so the download keeps going in the background). No storage permission: everything lives in the app's own folder.
+
+**Do I need to own Minecraft?** Yes, your own legit copy of Minecraft: Java Edition. The APK contains no game files.
+
+**Will it run on my phone?** Android 8.0+, arm64, ideally 4 GB of RAM or more. Tested on a Galaxy S25; other devices may vary.
+
 ### Building
 
 APK build instructions are in [ANDROID.md](ANDROID.md).
+
+### Credits
+
+The game itself is the work of the [Horizon](https://github.com/horizon-rust/horizon) authors ([playhorizon.dev](https://playhorizon.dev)).
 
 ### License
 
