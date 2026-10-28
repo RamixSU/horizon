@@ -2468,12 +2468,17 @@ impl Renderer {
             },
             mapped_at_creation: false,
         });
-        // HORIZON_GPU_CULL=0 turns occlusion culling off, `all` culls every
+        // HORIZON_GPU_CULL=0 turns occlusion culling off (Android: any other
+        // value turns it on), `all` culls every
         // frame however few its draws and little it hides, `shader` tests in
         // the shader as on Metal (A/B checks).
         let cull_env = std::env::var("HORIZON_GPU_CULL");
         let cull = cull::Cull::supported(&adapter, &device)
             .filter(|_| cull_env.as_deref() != Ok("0"))
+            // Off on Android unless asked for (HORIZON_GPU_CULL=1): on mobile
+            // tilers (Adreno) its box test let sections drop out for a frame
+            // or a few after a block changed, showing through terrain.
+            .filter(|_| !cfg!(target_os = "android") || cull_env.is_ok())
             .map(|depth_test| match cull_env.as_deref() {
                 Ok("shader") => cull::DepthTest::InShader,
                 _ => depth_test,
