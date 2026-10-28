@@ -13,11 +13,17 @@ rm -rf "$OUT/stage" && mkdir -p "$OUT/stage/lib"
 cargo ndk -t arm64-v8a -P 26 -o "$OUT/jni" build -p horizon-android --profile "$PROFILE" ${CARGO_FLAGS:-}
 mkdir -p "$OUT/stage/lib/arm64-v8a"
 "$NDK"/toolchains/llvm/prebuilt/*/bin/llvm-strip -o "$OUT/stage/lib/arm64-v8a/libhorizon.so" "$OUT/jni/arm64-v8a/libhorizon.so"
+# HorizonActivity (the soft keyboard bridge) -> classes.dex.
+rm -rf "$OUT/java" && mkdir -p "$OUT/java/classes"
+"${JAVAC:-javac}" --release 8 -nowarn -classpath "$PLATFORM" -d "$OUT/java/classes" \
+  $(find packaging/android/java -name '*.java') 2>&1 | grep -v "^warning\|^Note\|^1 warning" || true
+"$BT/d8" --min-api 26 --lib "$PLATFORM" --output "$OUT/java" $(find "$OUT/java/classes" -name '*.class')
 "$BT/aapt2" link -o "$OUT/unaligned.apk" --manifest packaging/android/AndroidManifest.xml -I "$PLATFORM"
 python3 - "$OUT" <<'PY'
 import sys, zipfile
 out = sys.argv[1]
 with zipfile.ZipFile(f"{out}/unaligned.apk", "a", zipfile.ZIP_DEFLATED) as z:
+    z.write(f"{out}/java/classes.dex", "classes.dex")
     z.write(f"{out}/stage/lib/arm64-v8a/libhorizon.so", "lib/arm64-v8a/libhorizon.so")
 PY
 "$BT/zipalign" -f -p 4 "$OUT/unaligned.apk" "$OUT/aligned.apk"

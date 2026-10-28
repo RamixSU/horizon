@@ -9,16 +9,17 @@
     <uses-feature android:name="android.hardware.vulkan.version" android:version="0x400003" android:required="false" />
     <application
         android:label="Horizon"
-        android:hasCode="false"
+        android:hasCode="true"
         android:extractNativeLibs="true"
         android:largeHeap="true"
         android:requestLegacyExternalStorage="true"
         android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
         <activity
-            android:name="android.app.NativeActivity"
+            android:name=".HorizonActivity"
             android:exported="true"
             android:screenOrientation="sensorLandscape"
             android:launchMode="singleTask"
+            android:windowSoftInputMode="adjustNothing|stateHidden"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|keyboard|navigation|uiMode|density|smallestScreenSize">
             <meta-data android:name="android.app.lib_name" android:value="horizon" />
             <intent-filter>

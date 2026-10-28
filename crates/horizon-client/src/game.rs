@@ -131,6 +131,8 @@ mod ominous_item_spawner;
 mod options;
 mod packs;
 mod pad;
+#[cfg(target_os = "android")]
+mod android_ime;
 mod touch;
 mod pad_menu;
 mod paintings;
