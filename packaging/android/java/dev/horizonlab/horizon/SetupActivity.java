@@ -75,7 +75,7 @@ public class SetupActivity extends Activity
         url.setBackgroundColor(Color.rgb(52, 52, 60));
         url.setHintTextColor(Color.GRAY);
         url.setPadding(dp(8), dp(8), dp(8), dp(8));
-        SharedPreferences prefs = getPreferences(MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences("setup", MODE_PRIVATE);
         url.setText(prefs.getString("derived_url", nativeDefaultUrl()));
         if (new File(dir, "horizon-derived.zip").isFile()) {
             url.setHint("horizon-derived.zip found");
@@ -138,7 +138,7 @@ public class SetupActivity extends Activity
 
     private void begin() {
         String u = url.getText().toString().trim();
-        getPreferences(MODE_PRIVATE).edit().putString("derived_url", u).apply();
+        getSharedPreferences("setup", MODE_PRIVATE).edit().putString("derived_url", u).commit();
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         button.setEnabled(false);
         Intent service = new Intent(this, SetupService.class);
