@@ -40,6 +40,70 @@ fn main() {
         // The log's first line names the build, so a bug report that carries the log says which one it was.
         log::info!("Horizon {}", crash::version());
         crash::install(home.clone(), side);
+
+        #[cfg(target_os = "ios")]
+        {
+            let res_dir = home.join("resources");
+            let zip_path = home.join("resources.zip");
+            if zip_path.is_file() && !res_dir.join("facts.json").is_file() {
+                log::info!("Horizon iOS: Found resources.zip, extracting to {}...", res_dir.display());
+                match std::fs::File::open(&zip_path) {
+                    Ok(file) => match zip::ZipArchive::new(file) {
+                        Ok(mut archive) => {
+                            let mut ok = true;
+                            for i in 0..archive.len() {
+                                let mut entry = match archive.by_index(i) {
+                                    Ok(e) => e,
+                                    Err(err) => {
+                                        log::error!("Failed to read zip entry {i}: {err}");
+                                        ok = false;
+                                        break;
+                                    }
+                                };
+                                let Some(rel_path) = entry.enclosed_name().map(|p| p.to_path_buf()) else {
+                                    continue;
+                                };
+                                let target = res_dir.join(rel_path);
+                                if entry.is_dir() {
+                                    let _ = std::fs::create_dir_all(&target);
+                                } else {
+                                    if let Some(parent) = target.parent() {
+                                        let _ = std::fs::create_dir_all(parent);
+                                    }
+                                    match std::fs::File::create(&target) {
+                                        Ok(mut out) => {
+                                            if let Err(e) = std::io::copy(&mut entry, &mut out) {
+                                                log::error!("Failed to extract {}: {e}", target.display());
+                                                ok = false;
+                                                break;
+                                            }
+                                        }
+                                        Err(e) => {
+                                            log::error!("Failed to create {}: {e}", target.display());
+                                            ok = false;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            if ok {
+                                log::info!("Horizon iOS: resources.zip successfully extracted!");
+                                let _ = std::fs::rename(&zip_path, home.join("resources.zip.extracted"));
+                            }
+                        }
+                        Err(e) => log::error!("Failed to open resources.zip archive: {e}"),
+                    },
+                    Err(e) => log::error!("Failed to open resources.zip file: {e}"),
+                }
+            }
+
+            if !res_dir.join("facts.json").is_file() {
+                log::error!(
+                    "Horizon iOS: GAME RESOURCES MISSING in {}! Place resources/ or resources.zip in the Horizon folder (via Files app).",
+                    res_dir.display()
+                );
+            }
+        }
     }
     if let Err(error) = game::run() {
         log::error!("Horizon: {error}");

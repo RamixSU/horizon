@@ -242,7 +242,10 @@ pub(super) fn spawn_loader(
                 loaded.pack_error = loaded.pack_error.or(pack_error);
                 loaded
             })
-            .map_err(|error| error.to_string());
+            .map_err(|error| {
+                log::error!("Horizon loader error: {error}");
+                error.to_string()
+            });
             let _ = sender.send(LoaderMsg::Done(result));
         })?;
     Ok((receiver, handle))

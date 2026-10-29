@@ -15253,6 +15253,7 @@ impl ApplicationHandler for App {
             Step::Ready(game) => *self = App::Ready(game),
             Step::Done => event_loop.exit(),
             Step::Failed(e) => {
+                log::error!("Horizon startup failed: {e}");
                 if let App::Loading(loading) = self {
                     loading.error = Some(e);
                 }
