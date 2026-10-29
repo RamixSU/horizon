@@ -12499,8 +12499,12 @@ impl ApplicationHandler for Game<'_> {
             }
             return;
         }
-        // The Window constructor: created fullscreen when options.txt says so.
-        let fullscreen = self.settings.fullscreen;
+        // The Window constructor: created fullscreen when options.txt says so, or always on iOS.
+        let fullscreen = if cfg!(any(target_os = "android", target_os = "ios")) {
+            true
+        } else {
+            self.settings.fullscreen
+        };
         let size = self.options.window_size.map(f64::from);
         self.fullscreen = horizon_client::window::FullscreenState::new(fullscreen);
         let attributes = Window::default_attributes()
@@ -12511,11 +12515,13 @@ impl ApplicationHandler for Game<'_> {
         let attributes = winit::platform::wayland::WindowAttributesExtWayland::with_name(
             attributes, "horizon", "horizon",
         );
-        let window = match event_loop.create_window(
-            attributes
-                .with_inner_size(winit::dpi::LogicalSize::new(size[0], size[1]))
-                .with_fullscreen(fullscreen.then_some(winit::window::Fullscreen::Borderless(None))),
-        ) {
+        #[cfg(target_os = "ios")]
+        let attributes = attributes.with_fullscreen(Some(winit::window::Fullscreen::Borderless(None)));
+        #[cfg(not(target_os = "ios"))]
+        let attributes = attributes
+            .with_inner_size(winit::dpi::LogicalSize::new(size[0], size[1]))
+            .with_fullscreen(fullscreen.then_some(winit::window::Fullscreen::Borderless(None)));
+        let window = match event_loop.create_window(attributes) {
             Ok(w) => Arc::new(w),
             Err(e) => {
                 self.error = Some(e.into());
@@ -14965,8 +14971,12 @@ impl Loading {
             }
             return;
         }
-        // The Window constructor: created fullscreen when options.txt says so.
-        let fullscreen = self.settings.fullscreen;
+        // The Window constructor: created fullscreen when options.txt says so, or always on iOS.
+        let fullscreen = if cfg!(any(target_os = "android", target_os = "ios")) {
+            true
+        } else {
+            self.settings.fullscreen
+        };
         let size = self
             .options
             .as_ref()
@@ -14981,11 +14991,13 @@ impl Loading {
         let attributes = winit::platform::wayland::WindowAttributesExtWayland::with_name(
             attributes, "horizon", "horizon",
         );
-        let window = match event_loop.create_window(
-            attributes
-                .with_inner_size(winit::dpi::LogicalSize::new(size[0], size[1]))
-                .with_fullscreen(fullscreen.then_some(winit::window::Fullscreen::Borderless(None))),
-        ) {
+        #[cfg(target_os = "ios")]
+        let attributes = attributes.with_fullscreen(Some(winit::window::Fullscreen::Borderless(None)));
+        #[cfg(not(target_os = "ios"))]
+        let attributes = attributes
+            .with_inner_size(winit::dpi::LogicalSize::new(size[0], size[1]))
+            .with_fullscreen(fullscreen.then_some(winit::window::Fullscreen::Borderless(None)));
+        let window = match event_loop.create_window(attributes) {
             Ok(w) => Arc::new(w),
             Err(e) => {
                 self.error = Some(e.into());

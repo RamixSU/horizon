@@ -28,6 +28,11 @@ jobs:
         with:
           targets: aarch64-apple-ios
 
+      - name: Cache cargo registry and target
+        uses: Swatinem/rust-cache@v2
+        with:
+          targets: aarch64-apple-ios
+
       - name: Build Horizon IPA
         run: |
           chmod +x packaging/ios/build_ipa.sh

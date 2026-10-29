@@ -283,6 +283,7 @@ impl Loading {
             gui.atlas.font.uniform = self.settings.force_unicode;
             gui.atlas.font.japanese = self.settings.japanese_glyphs;
         }
+        #[cfg(not(target_os = "ios"))]
         if let Some(window) = &self.window
             && let Some(want) = self.fullscreen.request(self.settings.fullscreen)
         {
