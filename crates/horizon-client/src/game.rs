@@ -357,6 +357,8 @@ impl Options {
                 path.into()
             } else if sibling.join("horizon-resources.json").exists() {
                 sibling
+            } else if cfg!(target_os = "ios") {
+                horizon_client::logging::game_home().join("resources")
             } else {
                 std::path::Path::new(".local/horizon-client").join(horizon_core::VANILLA_VERSION)
             },
@@ -5674,12 +5676,12 @@ impl Game<'_> {
                 .set_cursor_grab(CursorGrabMode::Locked)
                 .or_else(|_| window.set_cursor_grab(CursorGrabMode::Confined))
                 .is_ok();
-            // Android has no pointer to grab: touch turns the view (game/touch.rs).
-            #[cfg(target_os = "android")]
+            // Android and iOS have no pointer to grab: touch turns the view (game/touch.rs).
+            #[cfg(any(target_os = "android", target_os = "ios"))]
             {
                 self.captured = true;
             }
-            #[cfg(not(target_os = "macos"))]
+            #[cfg(not(any(target_os = "macos", target_os = "ios")))]
             if self.captured && self.focused {
                 warp(window);
             }

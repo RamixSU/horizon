@@ -1,5 +1,5 @@
 //! Horizon: native Rust client for Minecraft Java Edition 26.3 gameplay.
-#![forbid(unsafe_code)]
+#![allow(unsafe_code)]
 mod game;
 
 use horizon_client::{crash, logging};
@@ -11,6 +11,20 @@ static MOD_API_LEVEL: [u8; 27] = horizon_mods::api_level::MARK;
 
 fn main() {
     std::hint::black_box(&MOD_API_LEVEL);
+    #[cfg(target_os = "ios")]
+    {
+        let home = logging::game_home();
+        let _ = std::fs::create_dir_all(&home);
+        let _ = std::fs::create_dir_all(home.join("resources"));
+        let _ = std::env::set_current_dir(&home);
+        // SAFETY: Called early at startup before any threads are spawned.
+        unsafe {
+            std::env::set_var("HORIZON_HOME", &home);
+            if std::env::var_os("HORIZON_RESOURCES").is_none() {
+                std::env::set_var("HORIZON_RESOURCES", home.join("resources"));
+            }
+        }
+    }
     horizon_client::telemetry::mark_start();
     let args: Vec<String> = std::env::args().skip(1).collect();
     let game_args = args.iter().take_while(|a| *a != "--dedicated");

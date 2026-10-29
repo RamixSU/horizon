@@ -37,6 +37,10 @@ pub fn data_dir() -> PathBuf {
         if let Some(h) = &home {
             return h.join("Library/Application Support");
         }
+    } else if cfg!(target_os = "ios") {
+        if let Some(h) = &home {
+            return h.join("Documents");
+        }
     } else if let Some(d) = env("XDG_DATA_HOME") {
         return d;
     } else if let Some(h) = &home {
@@ -50,7 +54,13 @@ pub fn data_dir() -> PathBuf {
 pub fn game_home() -> PathBuf {
     match std::env::var_os("HORIZON_HOME").filter(|h| !h.is_empty()) {
         Some(h) => PathBuf::from(h),
-        None => data_dir().join("horizon"),
+        None => {
+            if cfg!(target_os = "ios") {
+                data_dir()
+            } else {
+                data_dir().join("horizon")
+            }
+        }
     }
 }
 

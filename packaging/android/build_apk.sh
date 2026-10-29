@@ -8,11 +8,17 @@ export ANDROID_NDK_HOME="$NDK"
 BT="$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -n1)"
 PLATFORM="$ANDROID_HOME/platforms/android-35/android.jar"
 PROFILE="${PROFILE:-fast}"
+TARGET_ABIS="${TARGET_ABIS:-x86_64}"
 OUT=target/android
 rm -rf "$OUT/stage" && mkdir -p "$OUT/stage/lib"
-cargo ndk -t arm64-v8a -P 26 -o "$OUT/jni" build -p horizon-android --profile "$PROFILE" ${CARGO_FLAGS:-}
-mkdir -p "$OUT/stage/lib/arm64-v8a"
-"$NDK"/toolchains/llvm/prebuilt/*/bin/llvm-strip -o "$OUT/stage/lib/arm64-v8a/libhorizon.so" "$OUT/jni/arm64-v8a/libhorizon.so"
+
+for ABI in $TARGET_ABIS; do
+  echo "=== Building libhorizon.so for $ABI ($PROFILE profile) ==="
+  cargo ndk -t "$ABI" -P 26 -o "$OUT/jni" build -p horizon-android --profile "$PROFILE" ${CARGO_FLAGS:-}
+  mkdir -p "$OUT/stage/lib/$ABI"
+  "$NDK"/toolchains/llvm/prebuilt/*/bin/llvm-strip -o "$OUT/stage/lib/$ABI/libhorizon.so" "$OUT/jni/$ABI/libhorizon.so"
+done
+
 # HorizonActivity (the soft keyboard bridge) -> classes.dex.
 rm -rf "$OUT/java" && mkdir -p "$OUT/java/classes"
 "${JAVAC:-javac}" --release 8 -nowarn -classpath "$PLATFORM" -d "$OUT/java/classes" \
@@ -23,11 +29,15 @@ rm -rf "$OUT/res" && mkdir -p "$OUT/res"
 "$BT/aapt2" link -o "$OUT/unaligned.apk" --manifest packaging/android/AndroidManifest.xml -I "$PLATFORM" \
   --min-sdk-version 26 --target-sdk-version 35 "$OUT/res/res.zip"
 python3 - "$OUT" <<'PY'
-import sys, zipfile
+import sys, zipfile, os
 out = sys.argv[1]
 with zipfile.ZipFile(f"{out}/unaligned.apk", "a", zipfile.ZIP_DEFLATED) as z:
     z.write(f"{out}/java/classes.dex", "classes.dex")
-    z.write(f"{out}/stage/lib/arm64-v8a/libhorizon.so", "lib/arm64-v8a/libhorizon.so")
+    for root, _, files in os.walk(f"{out}/stage/lib"):
+        for f in files:
+            full = os.path.join(root, f)
+            rel = os.path.relpath(full, f"{out}/stage")
+            z.write(full, rel)
 PY
 "$BT/zipalign" -f -p 4 "$OUT/unaligned.apk" "$OUT/aligned.apk"
 if [ -n "${HORIZON_KEYSTORE:-}" ] && [ -f "$HORIZON_KEYSTORE" ]; then

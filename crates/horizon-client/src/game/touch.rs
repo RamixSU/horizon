@@ -18,8 +18,9 @@ use super::Game;
 use horizon_client::{
     gamepad::Button,
     hud::{HudAtlas, HudBatch, rgba},
-    osk,
 };
+#[cfg(target_os = "android")]
+use horizon_client::osk;
 use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, time::Instant};
 use winit::{
@@ -216,6 +217,7 @@ pub(super) struct Touches {
     editing: bool,
     selected: Option<Id>,
     /// The soft keyboard was asked for.
+    #[allow(dead_code)]
     ime_shown: bool,
 }
 
@@ -227,7 +229,7 @@ impl Default for Touches {
             trigger_release: [0; 2],
             sneaking: false,
             sprinting: false,
-            layout: if cfg!(target_os = "android") { TouchLayout::load() } else { TouchLayout::default() },
+            layout: if cfg!(any(target_os = "android", target_os = "ios")) { TouchLayout::load() } else { TouchLayout::default() },
             editing: false,
             selected: None,
             ime_shown: false,
@@ -427,13 +429,13 @@ impl Game<'_> {
     }
 
     fn touch_controls_shown(&self) -> bool {
-        cfg!(target_os = "android") && self.player.is_some() && !self.pad_in_menu()
+        cfg!(any(target_os = "android", target_os = "ios")) && self.player.is_some() && !self.pad_in_menu()
     }
 
     /// Over a screen in the world (inventory, containers, pause, chat...):
     /// a close button, as Escape.
     fn touch_close_shown(&self) -> bool {
-        cfg!(target_os = "android")
+        cfg!(any(target_os = "android", target_os = "ios"))
             && self.player.is_some()
             && self.title.is_none()
             && self.pad_in_menu()
@@ -442,7 +444,7 @@ impl Game<'_> {
 
     /// On the title or pause screen: the profile button.
     fn touch_profile_shown(&self) -> bool {
-        cfg!(target_os = "android")
+        cfg!(any(target_os = "android", target_os = "ios"))
             && !self.touch_text_focused()
             && (self.title.as_ref().is_some_and(|t| matches!(t.mode, horizon_client::title::Mode::Main)) || (self.player.is_some() && self.screen == super::Screen::Paused))
     }
