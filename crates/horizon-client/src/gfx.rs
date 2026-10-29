@@ -591,6 +591,20 @@ fn sprite_split() -> u32 {
         .and_then(|v| v.parse().ok())
         .filter(|&n| (1..=SPRITE_SPLIT).contains(&n))
         .unwrap_or(SPRITE_SPLIT)
+        .min(ADAPTER_SPLIT.load(std::sync::atomic::Ordering::Relaxed))
+}
+/// The last opened adapter's array layer limit as a split, so the resource
+/// worker prepares arrays the device can hold.
+static ADAPTER_SPLIT: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(SPRITE_SPLIT);
+/// The split for an adapter: GPUs such as Mali-T760 hold only 256 layers per
+/// array, so the sprites go to more arrays. One layer short of a multiple of
+/// six, because `array_layers` adds one on OpenGL.
+fn adapter_split(limits: &wgpu::Limits) -> u32 {
+    let max = limits.max_texture_array_layers.max(1);
+    let max = if max % 6 == 0 && max > 1 { max - 1 } else { max };
+    let split = max.min(SPRITE_SPLIT);
+    ADAPTER_SPLIT.store(split, std::sync::atomic::Ordering::Relaxed);
+    sprite_split()
 }
 /// Sprite arrays terrain.wgsl binds (`sprites`, `sprites_1`...).
 const SPRITE_ARRAYS: u32 = 8;
@@ -673,6 +687,8 @@ fn terrain_group(
 pub struct PreparedTextures {
     sprites: Vec<(Vec<u8>, u32)>,
     forcefield: (Vec<u8>, u32),
+    /// Layers per array the sprites were split into.
+    split: u32,
 }
 impl PreparedTextures {
     pub fn new(
@@ -704,6 +720,7 @@ impl PreparedTextures {
                 })
                 .collect(),
             forcefield: mip_chain(forcefield.0, forcefield.1, &[], 0, 1),
+            split,
         }
     }
 }
@@ -838,11 +855,19 @@ fn describe_adapter(adapter: &wgpu::Adapter) {
 /// Whether an adapter's texture arrays hold the block textures Horizon puts
 /// in one array.
 fn check_layers(limits: &wgpu::Limits, layers: u32) -> Result<()> {
-    let needed = layers.min(sprite_split());
-    if limits.max_texture_array_layers < needed {
+    let split = adapter_split(limits);
+    if layers.div_ceil(split) > SPRITE_ARRAYS {
         return Err(format!(
-            "GPU supports {} texture layers; {needed} required",
+            "GPU supports {} texture layers; {layers} block textures need more than {SPRITE_ARRAYS} arrays",
             limits.max_texture_array_layers
+        )
+        .into());
+    }
+    if limits.max_sampled_textures_per_shader_stage < SPRITE_ARRAYS + 2 {
+        return Err(format!(
+            "GPU binds {} textures per shader stage; {} required",
+            limits.max_sampled_textures_per_shader_stage,
+            SPRITE_ARRAYS + 2
         )
         .into());
     }
@@ -1049,14 +1074,6 @@ impl Renderer {
         previous: Option<&Self>,
         api: GraphicsApi,
     ) -> Result<Self> {
-        let split = sprite_split();
-        if layers > split * SPRITE_ARRAYS {
-            return Err(format!(
-                "{layers} block textures; Horizon draws at most {}",
-                split * SPRITE_ARRAYS
-            )
-            .into());
-        }
         let Opened {
             instance,
             surface,
@@ -1092,6 +1109,20 @@ impl Renderer {
             }
             None => open_device(&window, offscreen, api, layers).await?,
         };
+        let split = adapter_split(&adapter.limits());
+        if layers > split * SPRITE_ARRAYS {
+            return Err(format!(
+                "{layers} block textures; Horizon draws at most {}",
+                split * SPRITE_ARRAYS
+            )
+            .into());
+        }
+        if split < SPRITE_SPLIT && layers > split {
+            log::info!(
+                "Horizon: GPU supports {} texture layers; block textures split into arrays of {split}",
+                adapter.limits().max_texture_array_layers
+            );
+        }
         let info = adapter.get_info();
         crate::graphics::suggest_reduced_far_detail(crate::graphics::lod_capped(&info));
         let size = window.inner_size();
@@ -1428,7 +1459,7 @@ impl Renderer {
             usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
             mapped_at_creation: false,
         });
-        let prepared = prepared.unwrap_or_else(|| {
+        let prepared = prepared.filter(|p| p.split == split).unwrap_or_else(|| {
             PreparedTextures::new(sprite_pixels, sprite_size, layers, sprite_mips, forcefield)
         });
         let mut mip_levels = 1;
@@ -3366,7 +3397,7 @@ impl Renderer {
                 &self.device,
                 &mut encoder,
                 &self.sprite_textures,
-                sprite_split(),
+                self.terrain_sprites[1] as u32,
                 layers,
                 self.sprite_textures[0].width(),
             );
