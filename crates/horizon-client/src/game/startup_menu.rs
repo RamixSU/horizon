@@ -5,7 +5,10 @@ use horizon_client::{
     clipboard::{self, AppendSelection, SystemClipboard},
     options_ui::{Event, OptionsUi, Page},
 };
-use winit::{event::KeyEvent, keyboard::ModifiersState};
+use winit::{
+    event::{KeyEvent, TouchPhase},
+    keyboard::ModifiersState,
+};
 
 #[derive(Default)]
 pub(super) struct StartupMenu {
@@ -442,6 +445,30 @@ impl Loading {
         event_loop: &ActiveEventLoop,
         event: WindowEvent,
     ) -> Result<()> {
+        if let WindowEvent::Touch(touch) = &event {
+            self.menu.pointer = (touch.location.x, touch.location.y);
+            self.update_menu_cursor();
+            let mouse_event = match touch.phase {
+                TouchPhase::Started => Some(WindowEvent::MouseInput {
+                    device_id: touch.device_id,
+                    state: ElementState::Pressed,
+                    button: MouseButton::Left,
+                }),
+                TouchPhase::Moved => Some(WindowEvent::CursorMoved {
+                    device_id: touch.device_id,
+                    position: touch.location,
+                }),
+                TouchPhase::Ended | TouchPhase::Cancelled => Some(WindowEvent::MouseInput {
+                    device_id: touch.device_id,
+                    state: ElementState::Released,
+                    button: MouseButton::Left,
+                }),
+            };
+            if let Some(event) = mouse_event {
+                return self.menu_event(event_loop, event);
+            }
+            return Ok(());
+        }
         if let WindowEvent::KeyboardInput { event, .. } = &event
             && let PhysicalKey::Code(key) = event.physical_key
         {

@@ -33,7 +33,7 @@ use winit::{
 /// Held this long without moving, a look finger breaks blocks.
 const HOLD_MS: u128 = 280;
 /// Moved further than this (GUI pixels), a look finger is no tap or hold.
-const SLOP: f64 = 4.0;
+const SLOP: f64 = 10.0;
 const LAYOUT_FILE: &str = "touch_layout.json";
 
 /// What a finger is doing, from where it went down.
@@ -254,7 +254,7 @@ impl Gui {
     }
     fn hotbar_slot(&self, p: [f32; 2]) -> Option<usize> {
         let x = p[0] - self.hotbar_x();
-        (p[1] >= self.h - 23.0 && (0.0..182.0).contains(&x)).then(|| ((x / 20.0) as usize).min(8))
+        (p[1] >= self.h - 32.0 && (-6.0..188.0).contains(&x)).then(|| (((x.max(0.0)) / 20.0) as usize).min(8))
     }
     /// The close (back) button over menus and containers, top right.
     fn close(&self) -> ([f32; 2], f32) {
@@ -266,11 +266,11 @@ impl Gui {
     }
     fn profile_hit(&self, p: [f32; 2]) -> bool {
         let (c, r) = self.profile();
-        (p[0] - c[0]).hypot(p[1] - c[1]) <= r + 5.0
+        (p[0] - c[0]).hypot(p[1] - c[1]) <= r + 10.0
     }
     fn close_hit(&self, p: [f32; 2]) -> bool {
         let (c, r) = self.close();
-        (p[0] - c[0]).hypot(p[1] - c[1]) <= r + 5.0
+        (p[0] - c[0]).hypot(p[1] - c[1]) <= r + 10.0
     }
     /// The control under `p`; hidden ones only in the editor.
     fn hit(&self, layout: &TouchLayout, p: [f32; 2], editing: bool) -> Option<Id> {
@@ -279,7 +279,13 @@ impl Gui {
             .filter_map(|id| {
                 let (c, r) = self.place(layout, id);
                 let d = (p[0] - c[0]).hypot(p[1] - c[1]);
-                let reach = if id == Id::Stick && !editing { r * 1.6 } else { r + 4.0 };
+                let reach = if id == Id::Stick && !editing {
+                    r * 1.6
+                } else if editing {
+                    r + 6.0
+                } else {
+                    (r * 1.35).max(r + 8.0)
+                };
                 (d <= reach).then_some((id, d - r))
             })
             .min_by(|a, b| a.1.total_cmp(&b.1))
